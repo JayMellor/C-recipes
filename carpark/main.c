@@ -158,6 +158,16 @@ bool is_car_part(Car *car, int col, int row) {
 	  is_vertical_car_part(car, col, row));
 }
 
+bool is_car_part_in_park(CarPark *carpark, int col, int row) {
+  for(int position = 0; position < carpark->car_list.length; position++) {
+    Car *current_car = &(carpark->car_list.cars[position]);
+    if (is_car_part(current_car, col, row)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 char get_car_label(CarPark *carpark, int col, int row) {
   for (int position = 0; position < carpark->car_list.length; position++) {
     Car *car = &(carpark->car_list.cars[position]);
@@ -221,13 +231,13 @@ void print_park(CarPark *carpark) {
 }
 
 typedef struct {
-  CarPark *el[MAX_SIZE];
+  CarPark el[MAX_SIZE];
   int length;
 } CarParkTree;
 
 CarParkTree make_carpark_tree(CarPark *init_park) {
   CarParkTree tree;
-  tree.el[0] = init_park;
+  tree.el[0] = *init_park;
   tree.length = 1;
   return tree;
 }
@@ -239,69 +249,139 @@ typedef enum {
   Right
 } Direction;
 
-CarPark move_car(CarPark *carpark, int car_index, Direction direction) {
-  Car *car = &(carpark->car_list.cars[car_index]);
+Car move_car(CarPark *carpark, int car_index, Direction direction) {
+  Car car = carpark->car_list.cars[car_index];
   switch (direction) {
   case Up: {
-    if (car->orientation != Vertical) {
-      return *carpark;
+    if (car.orientation != Vertical) {
+      return car;
     }
-    for(int position = 0; position < carpark->car_list.length; position++) {
-      if (position == car_index) {
-	// Ignore car to be moved
-	continue;
-      }
-      Car *current_car = &(carpark->car_list.cars[position]);
-      if (is_car_part(current_car, car->start_col, car->start_row -1)) {
-	return *carpark;
-      }
+    if (is_car_part_in_park(carpark, car.start_col, car.start_row -1)) {
+      return car;
     }
-    if (is_edge(carpark, car->start_col, car->start_row - 1) &&
-	!is_exit(carpark, car->start_col, car->start_row - 1)) {
-      return *carpark;
+    if (is_edge(carpark, car.start_col, car.start_row - 1) &&
+	!is_exit(carpark, car.start_col, car.start_row - 1)) {
+      return car;
     }
-    CarPark new_carpark;
-    memcpy(&new_carpark, carpark, sizeof *carpark);
-    Car *duplicated_car = &(new_carpark.car_list.cars[car_index]);
-    duplicated_car->start_row--;
-    return new_carpark;
+    Car new_car = car;
+    new_car.start_row--;
+    return new_car;
   }
     
-  case Down:
-    return *carpark;
+  case Down: {
+    if (car.orientation != Vertical) {
+      return car;
+    }
+    if (is_car_part_in_park(carpark, car.start_col, car.start_row + car.length)) {
+      return car;
+    }
+    if (is_edge(carpark, car.start_col, car.start_row + car.length) &&
+	!is_exit(carpark, car.start_col, car.start_row + car.length)) {
+      return car;
+    }
+    Car new_car = car;
+    new_car.start_row++;
+    return new_car;
+  }
     
   case Left: {
-  
-    if (car->orientation != Horizontal) {
-      return *carpark;
+    if (car.orientation != Horizontal) {
+      return car;
     }
-    for(int position = 0; position < carpark->car_list.length; position++) {
-      if (position == car_index) {
-	// Ignore car to be moved
-	continue;
-      }
-      Car *current_car = &(carpark->car_list.cars[position]);
-      if (is_car_part(current_car, car->start_col - 1, car->start_row)) {
-	return *carpark;
-      }
+    if (is_car_part_in_park(carpark, car.start_col - 1, car.start_row)) {
+      return car;
     }
-    if (is_edge(carpark, car->start_col - 1, car->start_row) &&
-	!is_exit(carpark, car->start_col - 1, car->start_row)) {
-      return *carpark;
+    if (is_edge(carpark, car.start_col - 1, car.start_row) &&
+	!is_exit(carpark, car.start_col - 1, car.start_row)) {
+      return car;
     }
-    CarPark new_carpark;
-    memcpy(&new_carpark, carpark, sizeof *carpark);
-    Car *duplicated_car = &(new_carpark.car_list.cars[car_index]);
-    duplicated_car->start_col--;
-    return new_carpark;
+    Car new_car = car;
+    new_car.start_col--;
+    return new_car;
   }
     
-  case Right:
-    return *carpark;
+  case Right: {
+    if (car.orientation != Horizontal) {
+      return car;
+    }
+    if (is_car_part_in_park(carpark, car.start_col + car.length, car.start_row)) {
+      return car;
+    }
+    if (is_edge(carpark, car.start_col + car.length, car.start_row) &&
+	!is_exit(carpark, car.start_col + car.length, car.start_row)) {
+      return car;
+    }
+    Car new_car = car;
+    new_car.start_col++;
+    return new_car;
+  }
+    
   }
 }
-      
 
+bool are_lists_equal(CarList *list, CarList *other) {
+  for (int car_index = 0; car_index < list->length; car_index++) {
+    Car *car = &(list->cars[car_index]);
+    int matching_position = find_car_index(other, car->label);
+    if (matching_position == -1) {
+      return false;
+    }
+    Car *matching_car = &(other->cars[matching_position]);
+    if ((matching_car->start_col != car->start_col) ||
+	(matching_car->start_row != car->start_row)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool is_car_list_unique(CarParkTree *tree, CarList *car_list) {
+  for (int park_index = 0; park_index < tree->length; park_index++) {
+    CarList *current_car_list = &(tree->el[park_index].car_list);
+    if (are_lists_equal(car_list, current_car_list)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void create_carpark_children(CarParkTree *tree, int parent_id) {
+  CarPark *parent = &(tree->el[parent_id]);
+  for (int position; position < parent->car_list.length; position++) {
+    Car *car = &(parent->car_list.cars[position]);
+
+    Car up_car = move_car(parent, position, Up);
+    if ((up_car.start_row != car->start_row)) {
+      CarList updated_list;
+      memcpy(&updated_list, &(parent->car_list), sizeof parent->car_list);
+      updated_list.cars[position] = up_car;
+      if (is_car_list_unique(tree, &updated_list)) {
+	CarPark new_park = make_carpark(parent->height, parent->width, parent_id);
+	new_park.exit_list = parent->exit_list;
+	new_park.car_list = updated_list;
+	tree->el[tree->length++] = new_park;
+      }
+    }
+    
+    Car left_car = move_car(parent, position, Left);
+    if ((left_car.start_col != car->start_col)) {
+      CarList updated_list;
+      memcpy(&updated_list, &(parent->car_list), sizeof parent->car_list);
+      updated_list.cars[position] = left_car;
+      if (is_car_list_unique(tree, &updated_list)) {
+	CarPark new_park = make_carpark(parent->height, parent->width, parent_id);
+	new_park.exit_list = parent->exit_list;
+	new_park.car_list = updated_list;
+	tree->el[tree->length++] = new_park;
+      }
+    }
+
+    // Add right and down
+  }
+}
+
+// Cause cars to disappear when touching an edge
+// Create print tree function
 
 void test(void) {
   CarPark carpark = make_carpark(3, 3, -1);
@@ -340,15 +420,43 @@ void test(void) {
   assert(second_park.car_list.cars[1].label == 'B');
   assert(second_park.car_list.cars[1].length == 2);
 
-  print_park(&second_park);
+  //print_park(&second_park);
 
   CarParkTree tree = make_carpark_tree(&second_park);
 
-  CarPark cp = move_car(&second_park, 1, Up);
-  assert(cp.car_list.cars[1].start_row == 2);
+  Car car1 = move_car(&second_park, 1, Up);
+  assert(car1.start_row == 2);
 
-  CarPark cp2 = move_car(&second_park, 0, Left);
-  print_park(&cp2);
+  Car car1_left = move_car(&second_park, 0, Left);
+  assert(car1_left.start_col == 0);
+
+  Car car1_right  = move_car(&second_park, 0, Right);
+  assert(car1_right.start_col == 2);
+
+  create_carpark_children(&tree, 0);
+  printf("%i\n", tree.length);
+  for (int i = 0; i < tree.length; i++) {
+    print_park(&tree.el[i]);
+    printf("\n");
+  }
+
+  printf("======\n");
+
+  create_carpark_children(&tree, 1);
+  printf("%i\n", tree.length);
+  for (int i = 0; i < tree.length; i++) {
+    print_park(&tree.el[i]);
+    printf("\n");
+  }
+
+  printf("======\n");
+
+  create_carpark_children(&tree, 2);
+  printf("%i\n", tree.length);
+  for (int i = 0; i < tree.length; i++) {
+    print_park(&tree.el[i]);
+    printf("\n");
+  }
   
 }
 
