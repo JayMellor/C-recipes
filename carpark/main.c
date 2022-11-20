@@ -79,7 +79,7 @@ Exit make_exit(int row, int col) {
   return exit;
 }
 
-typedef struct {
+typedef struct ExitList {
   Exit exits[MAX_SIZE];
   int length;
 } ExitList;
@@ -240,6 +240,7 @@ bool add_carpark_row(CarPark *carpark, char *str, int row) {
   }  return true;
 }
 
+// putchar can be used instead of printf
 void print_park(CarPark *carpark) {
   for (int row = 0; row < carpark->height; row++) {
     for (int col = 0; col < carpark->width; col++) {
