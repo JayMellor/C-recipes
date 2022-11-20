@@ -2,11 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
-
-typedef struct Cons {
-  char car;
-  struct Cons *cdr;
-} Cons;
+#include "linked_list.h"
 
 void clear_cons(Cons *cons) {
   Cons *cdr = NULL;
@@ -23,6 +19,7 @@ Cons *cons(char car, Cons *cdr) {
   return cons;
 }
 
+// Could use recursion too
 Cons *copy_cons(Cons *existing_cons) {
   Cons *first_cons = NULL;
   Cons *prev_cons = NULL;
@@ -47,7 +44,7 @@ Cons *last(Cons* cons) {
     return NULL;
 }
 
-Cons *append_cons(Cons *first, Cons *second) {
+Cons *append(Cons *first, Cons *second) {
   Cons *first_copy = copy_cons(first);
   Cons *last_cons = last(first_copy);
   if (last_cons == NULL) {
@@ -85,7 +82,7 @@ void test(void) {
   assert(copy->cdr->car == 'A');
   assert(copy->cdr->cdr == NULL);
 
-  Cons *joined = append_cons(single, pair);
+  Cons *joined = append(single, pair);
   assert(joined->car == 'A');
   assert(joined->cdr->car == 'B');
   assert(joined->cdr->cdr->car == 'A');
