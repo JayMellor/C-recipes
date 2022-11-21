@@ -54,7 +54,12 @@ Cons *append(Cons *first, Cons *second) {
   return first_copy;
 }
 
-// could add insert_after
+void insert_after(Cons* current, char new_value) {
+  Cons *new_cons = cons(new_value, NULL);
+  Cons *next_cons = current->cdr;
+  current->cdr = new_cons;
+  new_cons->cdr= next_cons;
+}
 
 void print_cons(Cons *cons) {
   for (; cons != NULL; cons = cons->cdr) {
@@ -88,6 +93,13 @@ void test(void) {
   assert(joined->cdr->cdr->car == 'A');
   assert(joined->cdr->cdr->cdr == NULL);
 
+  Cons *my_list = cons('A', cons('Z', cons('Q', cons('X', NULL))));
+  Cons *q_cons = my_list->cdr->cdr;
+  insert_after(q_cons, 'Y');
+  assert(q_cons->cdr->car == 'Y');
+  assert(q_cons->cdr->cdr->car == 'X');
+
+  clear_cons(my_list);
   clear_cons(copy);
   clear_cons(joined);
 }

@@ -30,8 +30,8 @@ Car make_car(char label, int start_row, int start_col) {
 }
 
 typedef struct {
-  Car  cars[MAX_SIZE];
-  int  length;
+  Car cars[MAX_SIZE];
+  int length;
 } CarList;
 
 CarList make_car_list() {
