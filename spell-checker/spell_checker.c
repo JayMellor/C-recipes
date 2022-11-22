@@ -5,7 +5,7 @@
 #include "../linked_list/linked_list.h"
 #define FILENAME "./eng_370k_shuffle.txt"
 #define LINE_LENGTH 100
-#define FILE_LENGTH 370000 // Full length is far too long apparently
+#define FILE_LENGTH 370000
 
 typedef struct WordList {
   char **el;
