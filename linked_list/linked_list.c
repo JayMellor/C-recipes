@@ -19,20 +19,11 @@ Cons *cons(char car, Cons *cdr) {
   return cons;
 }
 
-// Could use recursion too
-Cons *copy_cons(Cons *existing_cons) {
-  Cons *first_cons = NULL;
-  Cons *prev_cons = NULL;
-  for (; existing_cons != NULL; existing_cons = existing_cons->cdr) {
-    Cons *cons_copy = cons(existing_cons->car, NULL);
-    if (prev_cons == NULL) {
-      first_cons = cons_copy;
-    } else {
-      prev_cons->cdr = cons_copy;
-    }
-    prev_cons = cons_copy;
+Cons *copy_cons(Cons *existing) {
+  if (existing == NULL) {
+    return NULL;
   }
-  return first_cons;
+  return cons(existing->car, copy_cons(existing->cdr));
 }
 
 Cons *last(Cons* cons) {
