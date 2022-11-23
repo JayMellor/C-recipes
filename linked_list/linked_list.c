@@ -45,11 +45,14 @@ Cons *append(Cons *first, Cons *second) {
   return first_copy;
 }
 
-void insert_after(Cons* current, char new_value) {
-  Cons *new_cons = cons(new_value, NULL);
-  Cons *next_cons = current->cdr;
+bool insert_after(Cons* current, char new_value) {
+  if (current == NULL) {
+    return false;
+  }
+  
+  Cons *new_cons = cons(new_value, current->cdr);
   current->cdr = new_cons;
-  new_cons->cdr= next_cons;
+  return true;
 }
 
 void print_cons(Cons *cons) {
