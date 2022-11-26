@@ -14,8 +14,8 @@ bool linked_list_remove(linked_list *list,
 					 void *second),
 			void *value);
 linked_list *linked_list_find(linked_list *list,
-			bool (*is_equal)(void *first,
+			      bool (*is_equal)(void *first,
 					 void *second),
-			void *value);
+			      void *value);
 void linked_list_print(linked_list *list, void (*print_value) (void *value));
 void linked_list_free(linked_list *list);

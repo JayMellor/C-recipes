@@ -4,7 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include "word_list_array.h"
+/* #include "word_list_array.h" */
+#include "word_list_linked.h"
 
 #define FILENAME "./eng_370k_shuffle.txt"
 
@@ -15,6 +16,7 @@ void strip_string(char *str);
 int main(int argc, char *argv[]) {
   if (argc >= 2 && strcmp(argv[1], "run") == 0) {
     WordList *word_list = read_words_from_file(FILENAME);
+    printf("list %s\n", word_list_is_sorted(word_list) ? "is sorted" : "isn't sorted");
     search_prompt(word_list);
     word_list_free(word_list);
     return 0;
@@ -27,6 +29,7 @@ int main(int argc, char *argv[]) {
 // load linear with array:  22:26 - 23:10ish
 // load linear with end check: 17:58 - 18:14
 // load bin with array: 17:42 - 17:55
+// load with linked list 23:05 - 23:10
 WordList *read_words_from_file(char *file_name) {
   WordList *word_list = word_list_init();
   FILE *file = fopen(file_name, "r");
