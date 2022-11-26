@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "word_list_array.h"
 
 #define FILENAME "./eng_370k_shuffle.txt"
@@ -11,15 +12,21 @@ WordList *read_words_from_file(char *file_name);
 void search_prompt(WordList *word_list);
 void strip_string(char *str);
 
-int main() {
-  test();
-  WordList *word_list = read_words_from_file(FILENAME);
-  search_prompt(word_list);
-  word_list_free(word_list);
-  return 0;
+int main(int argc, char *argv[]) {
+  if (argc >= 2 && strcmp(argv[1], "run") == 0) {
+    WordList *word_list = read_words_from_file(FILENAME);
+    search_prompt(word_list);
+    word_list_free(word_list);
+    return 0;
+  } else {
+    test();
+    return 0;  
+  }
 }
 
-// load with array:  22:26 - 23:10ish
+// load linear with array:  22:26 - 23:10ish
+// load linear with end check: 17:58 - 18:14
+// load bin with array: 17:42 - 17:55
 WordList *read_words_from_file(char *file_name) {
   WordList *word_list = word_list_init();
   FILE *file = fopen(file_name, "r");
@@ -31,15 +38,14 @@ WordList *read_words_from_file(char *file_name) {
   while (fgets(line, LINE_LENGTH, file) != NULL) {
     strip_string(line);
     word_list_add(word_list, line);
-    if(word_list->length == 2000) {
-      break;
-    }
     if (word_list->length % 1000 == 0) {
       printf("Loaded %i\n", word_list->length);
     }
   }
   fclose(file);
-  printf("Loaded %i words\n", word_list->length);
+  time_t now;
+  time(&now);
+  printf("Loaded %i words. Finished at %s\n", word_list->length, ctime(&now));
   return word_list;
 }
 

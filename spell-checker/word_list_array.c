@@ -26,6 +26,9 @@ int find_place(WordList *word_list, char *line) {
   if (strcmp(line, word_list->el[0]) <= 0) {
     return 0;
   }
+  if (strcmp(line, word_list->el[word_list->length - 1]) >= 0) {
+    return word_list->length;
+  }
   for (int index = 0; index < word_list->length - 1; index++) {
     if (strcmp(word_list->el[index], line) <= 0 &&
 	strcmp(word_list->el[index + 1], line) >=0) {
@@ -33,6 +36,33 @@ int find_place(WordList *word_list, char *line) {
     }
   }
   return word_list->length;
+}
+
+int find_bin(WordList *word_list, char *line) {
+  if (word_list->length == 0) {
+    return 0;
+  }
+  if (strcmp(line, word_list->el[0]) <= 0) {
+    return 0;
+  }
+  if (strcmp(line, word_list->el[word_list->length - 1]) >= 0) {
+    return word_list->length;
+  }
+  int start = 1;
+  int end = word_list->length - 1;
+  do {
+    int middle = (start + end) / 2;
+    int middle_diff = strcmp(word_list->el[middle], line);
+    if (middle_diff == 0) {
+      return middle_diff;
+    }
+    if (middle_diff < 0) {
+      start = middle;
+    } else {
+      end = middle;
+    }
+  } while (end - start > 1);
+  return end;
 }
 
 void expand_list(WordList *word_list) {
@@ -45,6 +75,7 @@ void expand_list(WordList *word_list) {
 
 void word_list_add(WordList *word_list, char *line) {
   int position = find_place(word_list, line);
+  /* int position = find_bin(word_list, line); */
   expand_list(word_list);
   for (int later_index = word_list->length - 1; later_index > position; later_index--) {
     strcpy(word_list->el[later_index], word_list->el[later_index - 1]);
@@ -68,9 +99,8 @@ char *word_list_find(WordList *word_list, char *word) {
 
 void word_list_print(WordList *word_list) {
   for (int position = 0; position < word_list->length; position++) {
-    printf("%i. %s", position, word_list->el[position]);
+    printf("%i. %s\n", position, word_list->el[position]);
   }
-  printf("\n");
 }
 
 void word_list_free(WordList *word_list) {
@@ -79,6 +109,15 @@ void word_list_free(WordList *word_list) {
   }
   free(word_list->el);
   free(word_list);
+}
+
+bool word_list_is_sorted(WordList *word_list) {
+  for (int position = 1; position < word_list->length; position++) {
+    if (strcmp(word_list->el[position - 1], word_list->el[position]) > 0) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void test() {
@@ -94,6 +133,14 @@ void test() {
   assert(word_list->length == 2);
   assert(strcmp(word_list->el[0], "alphabet") == 0);
   assert(strcmp(word_list->el[1], "first word") == 0);
+
+  word_list_add(word_list, "gerald");
+  word_list_add(word_list, "duren");
+  word_list_add(word_list, "elephant");
+  word_list_add(word_list, "ale");
+  word_list_add(word_list, "zoologist");
+  word_list_add(word_list, "xanthous");
+  assert(word_list_is_sorted(word_list));
 
   assert(word_list_find(word_list, "first word") != NULL);
   assert(word_list_find(word_list, "not here") == NULL);
