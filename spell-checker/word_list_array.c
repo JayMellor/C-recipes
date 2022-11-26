@@ -1,5 +1,4 @@
 #include "word_list_array.h"
-#include <ctype.h>
 #include <assert.h>
 
 WordList *word_list_init() {
@@ -36,17 +35,6 @@ int find_place(WordList *word_list, char *line) {
   return word_list->length;
 }
 
-// Strips a string of spaces. STR should not be dynamically allocated.
-void strip_string(char *str) {
-  for (int position = 0; position < strlen(str); position++) {
-    if (isspace(str[position])) {
-      str[position] = '\0';
-      return;
-    }
-  }
-  
-}
-
 void expand_list(WordList *word_list) {
   if (++word_list->length % CHUNK_SIZE == 0) {
     word_list->el = (char **) realloc(word_list->el,
@@ -61,8 +49,6 @@ void word_list_add(WordList *word_list, char *line) {
   for (int later_index = word_list->length - 1; later_index > position; later_index--) {
     strcpy(word_list->el[later_index], word_list->el[later_index - 1]);
   }
-  printf("here\n");
-  strip_string(line);
   strcpy(word_list->el[position], line);
 }
 
@@ -100,7 +86,19 @@ void test() {
   assert(word_list != NULL);
   assert(word_list->length == 0);
 
-  word_list_add(word_list, "new  ");
+  word_list_add(word_list, "first word");
   assert(word_list->length == 1);
-  assert(strcmp(word_list->el[0], "new") == 0);
+  assert(strcmp(word_list->el[0], "first word") == 0);
+
+  word_list_add(word_list, "alphabet");
+  assert(word_list->length == 2);
+  assert(strcmp(word_list->el[0], "alphabet") == 0);
+  assert(strcmp(word_list->el[1], "first word") == 0);
+
+  assert(word_list_find(word_list, "first word") != NULL);
+  assert(word_list_find(word_list, "not here") == NULL);
+
+  word_list_free(word_list);
+
+  printf("Tests succeeded\n");
 }

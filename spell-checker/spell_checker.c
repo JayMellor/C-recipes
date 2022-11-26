@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 #include "word_list_array.h"
 
 #define FILENAME "./eng_370k_shuffle.txt"
 
 WordList *read_words_from_file(char *file_name);
 void search_prompt(WordList *word_list);
+void strip_string(char *str);
 
 int main() {
   test();
@@ -27,6 +29,7 @@ WordList *read_words_from_file(char *file_name) {
   }
   char line[LINE_LENGTH];
   while (fgets(line, LINE_LENGTH, file) != NULL) {
+    strip_string(line);
     word_list_add(word_list, line);
     if(word_list->length == 2000) {
       break;
@@ -58,4 +61,17 @@ void search_prompt(WordList *word_list) {
       return;
     }
   }
+}
+
+/** Strips a string of spaces.
+ *  STR should not be dynamically allocated or static.
+ */ 
+void strip_string(char *str) {
+  for (int position = 0; position < strlen(str); position++) {
+    if (isspace(str[position])) {
+      str[position] = '\0';
+      return;
+    }
+  }
+  
 }
