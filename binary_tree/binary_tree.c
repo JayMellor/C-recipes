@@ -1,12 +1,39 @@
 #include "binary_tree.h"
 
+bool is_str_equal(void *first, void *second);
+void test(void);
+
+void print_number(void *number) {
+  if (number == NULL) {
+    return;
+  }
+  printf("%i",  *((int *) number));
+}
+
+int main(void) {
+  test();
+  BinaryTree *tree = make_binary_tree();
+  int value = 1;
+  binary_tree_add(tree, &value, sizeof(int));
+  binary_tree_print(tree, &print_number);
+  printf("\n");
+  return 0;
+}
+
 bool is_str_equal(void *first, void *second) {
   return strcmp((char *) first, (char *) second) == 0;
 }
 
-void test() {
+void print_string(void *str) {
+  if (str == NULL) {
+    return;
+  }
+  printf("%s", (char *) str);
+}
+
+void test(void) {
   BinaryTree *tree = make_binary_tree();
-  binary_tree_add(tree, "fred", 5);
+  assert(binary_tree_add(tree, "fred", 5));
   assert(strcmp(tree->value, "fred") == 0);
   
   BinaryTree *child = make_binary_tree();
@@ -23,17 +50,19 @@ void test() {
   binary_tree_add_child(tree->right, Left, l_child);
   assert(binary_tree_contains(tree, &is_str_equal, "LED Lights"));
   assert(!binary_tree_contains(tree, &is_str_equal, "LCD Lights"));
+
+  binary_tree_print(tree, &print_string);
+  printf("\n");
   
   binary_tree_free(tree);
 }
 
-int main() {
-  test();
-  return 0;
-}
-
-BinaryTree *make_binary_tree() {
-   return (BinaryTree *) malloc(sizeof(BinaryTree));
+BinaryTree *make_binary_tree(void) {
+  BinaryTree *tree = (BinaryTree *) calloc(1, sizeof(BinaryTree));
+  if (tree == NULL) {
+    exit(EXIT_FAILURE);
+  }
+  return tree;
 }
 
 bool binary_tree_add(BinaryTree *tree, void *value, size_t size) {
@@ -68,6 +97,19 @@ bool binary_tree_contains(BinaryTree *tree,
   }
   return binary_tree_contains(tree->left, is_equal, value) ||
     binary_tree_contains(tree->right, is_equal, value);
+}
+
+// Needs flush to ensure printing
+void binary_tree_print(BinaryTree *tree, void (*print_value) (void *value)) {
+  if (tree == NULL) {
+    return;
+  }
+  print_value(tree->value);
+  printf(" (");
+  binary_tree_print(tree->left, print_value);
+  printf(") (");
+  binary_tree_print(tree->right, print_value);
+  printf(") ");
 }
 
 void binary_tree_free(BinaryTree *tree) {
