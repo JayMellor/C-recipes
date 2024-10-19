@@ -16,7 +16,7 @@ typedef enum Branch {
   Right
 } Branch;
 
-BinaryTree *make_binary_tree();
+BinaryTree *make_binary_tree(void);
 bool binary_tree_add(BinaryTree *tree, void *value, size_t size);
 // Could have something like ..._add(tree->left, child) and use the pointer?
 bool binary_tree_add_child(BinaryTree *tree, Branch branch, BinaryTree *child);
@@ -26,4 +26,7 @@ bool binary_tree_contains(BinaryTree *tree,
 			  void *value);
 void binary_tree_print(BinaryTree *tree, void (*print_value) (void *value));
 void binary_tree_free(BinaryTree *tree);
-void test();
+void test(void);
+void print_string(void *str);
+void print_number(void *number);
+bool is_str_equal(void *first, void *second);
