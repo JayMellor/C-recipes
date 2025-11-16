@@ -9,6 +9,7 @@
 
 void cons_to_string(char *str, Cons *cons);
 int split(char output[][5], char *str, char split);
+Cons *evaluate(BinaryTree *tree);
 
 void assert_equal(char *expected, char *actual) {
   if ((expected == NULL) && actual != NULL) {
@@ -75,7 +76,9 @@ int main(void) {
   // cons(1, cons(2, cons(3, NULL)))
         /* test(); */
 
-  parse("(CONS 1 2)");
+  char word[100];
+  fgets(word, 100, stdin);  
+  parse(word);
   return 0;
 
   char myStr[] = "(1 . (2 . 3))";
@@ -83,7 +86,7 @@ int main(void) {
   split(splitted, myStr, ' ');
   puts("[");
   for (int idx = 0; idx < 10; idx++) {
-  	printf("%s,\n",splitted[idx]);
+    printf("%s,\n", splitted[idx]);
   }
   puts("]");
   return 0;
@@ -91,7 +94,11 @@ int main(void) {
 }
 
 Cons *new_cons(void) {
-  Cons *cons = (Cons *) calloc(1, sizeof(Cons)); 
+  Cons *cons = (Cons *) calloc(1, sizeof(Cons));
+  cons->atom=NULL;
+  cons->car=NULL;
+  cons->cdr=NULL;
+  cons->size=0;
   return cons;
 }
 
@@ -193,7 +200,22 @@ int split(char output[][5], char *str, char splitChar) {
     }
   }
   strncpy(output[chunkCount], str + chunkStart, strlen(str) - chunkStart);
-  return chunkCount;  
+  return chunkCount;
+}
+
+void switchBranch(Branch *branch) {
+  if (*branch == Left) {
+	*branch = Right;
+  } else {
+	*branch = Left;
+  }
+}
+
+void clearString(char *str) {
+  for (int ii = 0; ii < 9; ii++) {
+	str[ii] = 0;
+  }
+  str[9] = '\0';
 }
 
 // (CONS 1 (CONS 2 3))
@@ -203,11 +225,12 @@ BinaryTree *parseToTree(char *input) {
   BinaryTree *tree = make_binary_tree();
 
   bool afterOpenBracket = false;
+  bool insideCons = false;
   Branch branch = Left;
   char buffer[10] = "";
   int bufferIdx = 0;
   for (int idx = 0; idx < strlen(input); idx++) {
-	/* printf("buffer: (%s), bufferIdx: %d, current: %c\n", buffer, bufferIdx, input[idx]); */
+	/* printf("buffer: (%s), bufferIdx: %d, current: %c\n", buffer, bufferIdx, input[idx]); */    
     if ((input[idx] == ' ') || (input[idx] == ')')) {
 	  if (afterOpenBracket) {
 		binary_tree_add(tree, buffer, strlen(buffer));
@@ -217,24 +240,39 @@ BinaryTree *parseToTree(char *input) {
 		BinaryTree *child = make_binary_tree();
 		binary_tree_add(child, buffer, strlen(buffer));
 		binary_tree_add_child(tree, branch, child);
-
-		if (branch == Left) {
-		  branch = Right;
-		} else {
-		  branch = Left;
-		}
+		switchBranch(&branch);
 	  }
           
 	  bufferIdx = 0;
-	  for (int ii = 0; ii < 9; ii++) {
-		buffer[ii] = 0;
+	  clearString(buffer);
+	  if (input[idx] == ')') {
+		insideCons = false;
 	  }
-	  buffer[9] = '\0';
-	  
 	  continue;
     }
     if (input[idx] == '(') {
+	  if (insideCons) {
+		int nextCloseBracketIdx = idx;
+		for (;nextCloseBracketIdx < strlen(input); nextCloseBracketIdx++) {
+		  if (input[nextCloseBracketIdx] == ')') {
+			break;
+		  }
+		}
+		char consSubStr[nextCloseBracketIdx-idx+1];
+		strncpy(consSubStr,input+idx, nextCloseBracketIdx-idx+1);        
+		BinaryTree *child = parseToTree(consSubStr);
+		binary_tree_add_child(tree, branch, child);
+		switchBranch(&branch);
+		if (input[nextCloseBracketIdx+1] == ' ') {
+		  idx = nextCloseBracketIdx + 1; // todo hack to account for space
+		} else {		  
+		  idx = nextCloseBracketIdx;        
+		}
+		continue;
+	  }
+	  
 	  afterOpenBracket = true;
+	  insideCons = true;
 	  continue;
     }
 	buffer[bufferIdx] = input[idx];
@@ -248,6 +286,25 @@ Cons *parse(char *input) {
   printf("is tree null? %s\n", tree == NULL ? "yes" : "no");
   printf("(%s (%s) (%s))\n", tree->value,tree->left == NULL ? "null" : tree->left->value, tree->right == NULL ? "null": tree->right->value);
   binary_tree_print(tree, &print_string);
+  printf("\n");
+  Cons *cons = evaluate(tree);
+
+  print_cons(cons);
+  return cons;
+}
+
+Cons *evaluate(BinaryTree *tree) {  
+  if ((tree == NULL) || (tree->value == NULL)) {
+	return NULL;
+  }
+
+  if (strcmp(tree->value, "CONS") == 0) {
+	Cons *car = evaluate(tree->left);    
+    Cons *cdr = atom(tree->right->value, sizeof(tree->right->value));
+	return cons(car, cdr);
+  }
+
+  return atom(tree->value, sizeof(tree->value));
 }
 
 /* Cons *parse(char *input) { */
