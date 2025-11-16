@@ -1,5 +1,6 @@
 #include "lisp.h"
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,7 +80,8 @@ int main(void) {
 
   char word[100];
   fgets(word, 100, stdin);  
-  parse(word);
+  Cons *result = parse(word);
+  print_cons(result);  
   return 0;
 
   char myStr[] = "(1 . (2 . 3))";
@@ -131,6 +133,14 @@ void cons_to_string(char *str, Cons *cons) {
   }
 
   if (is_atomic(cons)) {
+	if (*((int*) cons->atom) == 1) {      
+	  strcpy(str, T);
+	  return;
+	}
+	if (*((int*) cons->atom) == 0) {      
+	  strcpy(str, NIL);
+	  return;
+	}
 	strcpy(str, cons->atom);
 	return;
   }
@@ -154,7 +164,7 @@ void cons_to_string(char *str, Cons *cons) {
 }
 
 void print_cons(Cons *cons) {
-  char str[50];
+  char str[50] = "";
   cons_to_string(str, cons);
   puts(str); 
 }
@@ -283,14 +293,10 @@ BinaryTree *parseToTree(char *input) {
 }
 
 Cons *parse(char *input) {
-  BinaryTree *tree = parseToTree(input);
-  printf("is tree null? %s\n", tree == NULL ? "yes" : "no");
-  printf("(%s (%s) (%s))\n", tree->value,tree->left == NULL ? "null" : tree->left->value, tree->right == NULL ? "null": tree->right->value);
+  BinaryTree *tree = parseToTree(input);  
   binary_tree_print(tree, &print_string);
   printf("\n");
   Cons *cons = evaluate(tree);
-
-  print_cons(cons);
   return cons;
 }
 
@@ -308,8 +314,45 @@ Cons *evaluate(BinaryTree *tree) {
   if (strcmp(tree->value, "ATOM") == 0) {
 	Cons *arg = evaluate(tree->left);
 	bool isAtomic = is_atomic(arg);
-	return atom(isAtomic ? T : NIL, sizeof(isAtomic ? T : NIL));
+	return atom(&isAtomic, sizeof(isAtomic));
   }
+
+  if (strcmp(tree->value, "IF") == 0) {
+	// todo need to handle 3-ary operations
+	// IF (COND () ()) (CONSEQUENT (THEN) (ELSE))
+  }
+
+  if (strcmp(tree->value, "OR") == 0) {
+	// OR (A () ()) (B () ())
+	Cons *car = evaluate(tree->left);
+	bool isLeftTrue = is_atomic(car) ? !!*((bool*) car->atom) : true;
+	if (isLeftTrue) {
+	  return car;
+	}
+
+	Cons *cdr = evaluate(tree->right);
+	bool isRightTrue = is_atomic(cdr) ? !!*((bool*) cdr->atom) : true;
+	if (isRightTrue) {
+	  return cdr;
+	}
+
+	bool nil = false;
+	return atom(&nil, sizeof(nil));
+  }
+
+  if (strcmp(tree->value, T) == 0) {
+	bool t = true;
+	return atom(&t, 1);
+  }
+
+  if (strcmp(tree->value, NIL) == 0) {
+	bool nil = false;
+	return atom(&nil, sizeof(nil));
+  }
+
+  // LAMBDA (ARGS () ()) (BODY () ())
+
+  // DEFINE (NAME () ()) (VALUE () ())
 
   return atom(tree->value, sizeof(tree->value));
 }
