@@ -5,6 +5,7 @@
 #include <string.h>
 #include "../binary_tree/binary_tree.h"
 
+#define T "T"
 #define NIL "NIL"
 
 void cons_to_string(char *str, Cons *cons);
@@ -299,9 +300,15 @@ Cons *evaluate(BinaryTree *tree) {
   }
 
   if (strcmp(tree->value, "CONS") == 0) {
-	Cons *car = evaluate(tree->left);    
-    Cons *cdr = atom(tree->right->value, sizeof(tree->right->value));
+	Cons *car = evaluate(tree->left);
+	Cons *cdr = evaluate(tree->right);
 	return cons(car, cdr);
+  }
+
+  if (strcmp(tree->value, "ATOM") == 0) {
+	Cons *arg = evaluate(tree->left);
+	bool isAtomic = is_atomic(arg);
+	return atom(isAtomic ? T : NIL, sizeof(isAtomic ? T : NIL));
   }
 
   return atom(tree->value, sizeof(tree->value));
