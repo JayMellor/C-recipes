@@ -10,7 +10,6 @@
 #define NIL "NIL"
 
 void cons_to_string(char *str, Cons *cons);
-int split(char output[][5], char *str, char split);
 Cons *evaluate(BinaryTree *tree);
 
 void assert_equal(char *expected, char *actual) {
@@ -82,16 +81,6 @@ int main(void) {
   fgets(word, 100, stdin);  
   Cons *result = parse(word);
   print_cons(result);  
-  return 0;
-
-  char myStr[] = "(1 . (2 . 3))";
-  char splitted[10][5] = {"", "", "", "", "", "", "", "", "", ""};
-  split(splitted, myStr, ' ');
-  puts("[");
-  for (int idx = 0; idx < 10; idx++) {
-    printf("%s,\n", splitted[idx]);
-  }
-  puts("]");
   return 0;
 
 }
@@ -208,20 +197,6 @@ int find(char *str, char ch) {
 	}
   }
   return -1;
-}
-
-int split(char output[][5], char *str, char splitChar) {
-  int chunkStart = 0;
-  int chunkCount = 0;
-  for (int idx = 0; idx < strlen(str); idx++) {
-	if (str[idx] == splitChar) {
-	  strncpy(output[chunkCount], str + chunkStart, idx - chunkStart);
-	  chunkCount++;
-	  chunkStart = idx;
-    }
-  }
-  strncpy(output[chunkCount], str + chunkStart, strlen(str) - chunkStart);
-  return chunkCount;
 }
 
 void switchBranch(Branch *branch) {
