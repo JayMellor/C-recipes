@@ -115,6 +115,16 @@ Cons *atom(void *value, size_t size) {
   return cons;
 }
 
+Cons *nil(void) {
+  bool nil = false;
+  return atom(&nil, sizeof(nil));
+}
+
+Cons *t(void) {
+  bool t = true;
+  return atom(&t, sizeof(t));
+}
+
 Cons *cons(Cons *car, Cons *cdr) {
   Cons *cons = new_cons();
   cons->car = car;
@@ -336,18 +346,15 @@ Cons *evaluate(BinaryTree *tree) {
 	  return cdr;
 	}
 
-	bool nil = false;
-	return atom(&nil, sizeof(nil));
+	return nil();
   }
 
   if (strcmp(tree->value, T) == 0) {
-	bool t = true;
-	return atom(&t, 1);
+	return t();
   }
 
   if (strcmp(tree->value, NIL) == 0) {
-	bool nil = false;
-	return atom(&nil, sizeof(nil));
+	return nil();
   }
 
   // LAMBDA (ARGS () ()) (BODY () ())
